@@ -5,6 +5,7 @@ coverage.json
 typechain
 typechain-types
 .vscode
+gas_reporter.txt
 
 # Hardhat files
 cache
