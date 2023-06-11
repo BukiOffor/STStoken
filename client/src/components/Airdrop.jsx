@@ -5,23 +5,42 @@ import {useState} from "react"
 
 
 export default function Airdrop() {
-
-    const[address, setAddress] = useState('')
+    
     const provider = new ethers.providers.Web3Provider(window.ethereum);
 
-
+    const Contractaddress = "0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9"
     const setValue = (setter) => (evt) => setter(evt.target.value);
+    const[address, setAddress] = useState('')
 
-    const Contractaddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-    
-    async function getAirdrop(){
-        const STStoken = new ethers.Contract(Contractaddress,abi,provider)
-        const signer = provider.getSigner()
-        STStoken.connect(signer)
-        await STStoken.airdrop(address)
-        //console.log(receipt)
+    async function connectWallet(){
+        if(window.ethereum){
+            provider.send("eth_requestAccounts", [])
+        }else{
+            <>Please Install MetaMask</>
+        }
     }
 
+    async function getAirdrop(){
+        connectWallet()
+        const signer = provider.getSigner()
+        const STStoken = new ethers.Contract(Contractaddress,abi,signer)
+        const receipt = await STStoken.airdrop(address)
+        console.log(receipt)
+    }
+    async function lottery(){
+        connectWallet()
+        const signer = provider.getSigner();
+        const STStoken = new ethers.Contract(Contractaddress,abi,signer)
+        const receipt = await STStoken.lottery()
+        console.log(receipt)
+
+
+
+        
+
+
+
+    }
 
     
     return (
@@ -30,7 +49,9 @@ export default function Airdrop() {
         value={address}
         onChange={setValue(setAddress)}
         ></input>
-        <input type="submit" className="button" value="Transfer" onClick={getAirdrop} />
+        <input type="submit" className="button" value="Airdrop" onClick={getAirdrop} /><br/>
+       <br /> <input type="submit" className="button" value="Lottery" onClick={lottery} />
+
 
         </>
     )
