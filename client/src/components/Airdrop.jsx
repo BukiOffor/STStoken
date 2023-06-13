@@ -19,6 +19,7 @@ export default function Airdrop() {
             <>Please Install MetaMask</>
         }
     }
+    
 
     async function getAirdrop(){
         connectWallet()

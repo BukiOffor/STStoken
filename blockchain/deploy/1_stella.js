@@ -10,34 +10,36 @@ module.exports.default = async({deployments})=>{
     const initialSupply = networkConfig[chainID].initialSupply;
     const gasLane = networkConfig[chainID]['gasLane'];
     const callBackGasLimit = networkConfig[chainID]["callBackGasLimit"];
-    let VrfCoordinatorV2Address, subscriptionId, vrfCoordinatorV2MOCK;
+    let VrfCoordinatorV2Address, subscriptionId,value, vrfCoordinatorV2MOCK;
+
 
     if(!developmentChains.includes(network.name)){
         VrfCoordinatorV2Address = networkConfig[chainID].vrfCoordinatorV2;
         subscriptionId = networkConfig[chainID].subscriptionId;
+        value = ethers.utils.parseEther("0.1")
     }else{
         log("Local network detected! Deploying mocks...")
-        const vrfCoordinatorV2MOCKdeploy = await deploy("VRFCoordinatorV2Mock",{
+        await deploy("VRFCoordinatorV2Mock",{
             from: signer,
             args: ["250000000000000000", 1e9],
-            log: true
+            log: true,
+            value: value
         })
         log("Mocks Deployed!")
         log("-------------------------------------------------------------------------------------------------")
         log("You are deploying to a local network, you'll need a local network running to interact")
-        log(
-            "Please run `yarn hardhat console --network localhost` to interact with the deployed smart contracts!"
-        )
+        log("Please run `yarn hardhat console --network localhost` to interact with the deployed smart contracts!")
         log("--------------------------------------------------------------------------------------------------")
         vrfCoordinatorV2MOCK = await ethers.getContract("VRFCoordinatorV2Mock");
         VrfCoordinatorV2Address = vrfCoordinatorV2MOCK.address;
         const response = await vrfCoordinatorV2MOCK.createSubscription();
         const receipt = await response.wait(1);
         subscriptionId = receipt.events[0].args.subId;
+        value = ethers.utils.parseEther("500");
         await vrfCoordinatorV2MOCK.fundSubscription(subscriptionId,ethers.utils.parseEther("100"));
     }
 
-    const args = [initialSupply,subscriptionId,VrfCoordinatorV2Address,gasLane,callBackGasLimit]
+    const args = [initialSupply,subscriptionId,VrfCoordinatorV2Address,gasLane,callBackGasLimit];
 
     log("*******deploying contract********")
     const stella = await deploy("Stella",{

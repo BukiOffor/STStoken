@@ -5,14 +5,23 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "hardhat/console.sol";
 
-
+/**
+ * @title A contract for Stella Token
+ * @author Buki
+ * @notice The token is not live
+ * @dev This contract implements chailink vrf
+ */
  contract Stella is ERC20, VRFConsumerBaseV2{
+
+    error InsufficientFunds();
     
     bytes32 private immutable i_gasLane;
     uint64  private immutable subscriptionID;
     uint32 private immutable i_callbackGasLimit;
     uint8 private constant request_confirmations = 3;
-    uint8 private constant num_words = 1; 
+    uint8 private constant num_words = 1;
+    uint256 private immutable pool; 
+
     VRFCoordinatorV2Interface private immutable i_coordinator;
 
     struct Status{
@@ -23,6 +32,11 @@ import "hardhat/console.sol";
  
     mapping(uint=>Status) public randomness;
 
+    event Airdrop(address indexed to, uint indexed amount);
+    event Lottery(address indexed to, uint indexed amount);
+    event ethSwapforSTS(address indexed to, uint indexed amount);
+    event stsSwapforETH(address indexed to, uint indexed amount);
+
     constructor(
         uint256 initialSupply, 
         uint64 _subscriptionID, 
@@ -31,17 +45,15 @@ import "hardhat/console.sol";
         uint32 callbackGasLimit
         ) 
     ERC20("STELLA","STS")
-    VRFConsumerBaseV2(vrfcoordinator){
+    VRFConsumerBaseV2(vrfcoordinator) payable {
         subscriptionID = _subscriptionID;
         i_coordinator = VRFCoordinatorV2Interface(vrfcoordinator);
         i_gasLane = gasLane;
         i_callbackGasLimit = callbackGasLimit;
+        pool = initialSupply * msg.value;
         _mint(address(this),initialSupply);
      }
     
-    event Airdrop(address indexed to, uint indexed amount);
-    event Lottery(address indexed to, uint indexed amount);
-
     function airdrop(address to) public virtual {
         address owner = address(this);
         uint amount = 10000000000;
@@ -74,5 +86,45 @@ import "hardhat/console.sol";
             num_words
         );
     }
+    /**
+    implements a token swap, we assume ETH is an ERC20 TOKEN
+    x*y = K 
+    */
+   
+    function requestETHforSTS(uint amount) public view returns(uint STS){
+        uint Txpool = pool;
+        uint ethValue = address(this).balance;
+        uint tokenBalance = balanceOf(address(this));
+        uint newSTSValue = Txpool / ethValue + amount;
+        STS = tokenBalance - newSTSValue;
+    }
+
+    function swapETHforSTS() external payable {
+        uint STS = requestETHforSTS(msg.value);
+        _transfer(address(this),msg.sender,STS);
+        emit ethSwapforSTS(msg.sender,STS);
+    }
+    function swapETHforExactToken(uint amount ) external payable{
+
+    }
+
+    function requestSTSforETH(uint amount) public view returns(uint newEthTokenValue) {
+        uint Txpool = pool;
+        uint ethValue = address(this).balance;
+        uint tokenBalance = balanceOf(address(this));
+        uint newEthValue = Txpool / tokenBalance+amount;
+        newEthTokenValue = ethValue - newEthValue;
+    }
+
+    function swapSTSforETH(uint amount)external {
+        if(balanceOf(msg.sender) < amount){
+            revert InsufficientFunds();
+        }
+        uint ethAmount = requestSTSforETH(amount);
+        (bool sent,) = msg.sender.call{value:ethAmount}("");
+        require(sent);
+        emit stsSwapforETH(msg.sender, ethAmount);     
+    }
+   
 
 }
