@@ -91,7 +91,7 @@ import "hardhat/console.sol";
     x*y = K 
     */
    
-    function requestETHforSTS(uint amount) public view returns(uint STS){
+    function requestSTSforETH(uint amount) public view returns(uint STS){
         uint Txpool = pool;
         uint ethValue = address(this).balance;
         uint tokenBalance = balanceOf(address(this));
@@ -100,7 +100,7 @@ import "hardhat/console.sol";
     }
 
     function swapETHforSTS() external payable {
-        uint STS = requestETHforSTS(msg.value);
+        uint STS = requestSTSforETH(msg.value);
         _transfer(address(this),msg.sender,STS);
         emit ethSwapforSTS(msg.sender,STS);
     }
@@ -108,7 +108,8 @@ import "hardhat/console.sol";
 
     }
 
-    function requestSTSforETH(uint amount) public view returns(uint newEthTokenValue) {
+        
+    function requestETHforSTS(uint amount) public view returns(uint newEthTokenValue) {
         uint Txpool = pool;
         uint ethValue = address(this).balance;
         uint tokenBalance = balanceOf(address(this));
@@ -120,7 +121,7 @@ import "hardhat/console.sol";
         if(balanceOf(msg.sender) < amount){
             revert InsufficientFunds();
         }
-        uint ethAmount = requestSTSforETH(amount);
+        uint ethAmount = requestETHforSTS(amount);
         (bool sent,) = msg.sender.call{value:ethAmount}("");
         require(sent);
         emit stsSwapforETH(msg.sender, ethAmount);     

@@ -6,15 +6,26 @@ import {useState} from "react"
 
 export default function Airdrop() {
     
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+    provider.on("network", (newNetwork, oldNetwork) => {
+        // When a Provider makes its initial connection, it emits a "network"
+        // event with a null oldNetwork along with the newNetwork. So, if the
+        // oldNetwork exists, it represents a changing network
+        if (oldNetwork) {
+            window.location.reload();
+        }
+    })
 
     const Contractaddress = "0xcf7ed3acca5a467e9e704c703e8d87f634fb0fc9"
     const setValue = (setter) => (evt) => setter(evt.target.value);
     const[address, setAddress] = useState('')
+    const[ signer, setSigner] = useState("")
 
     async function connectWallet(){
         if(window.ethereum){
             provider.send("eth_requestAccounts", [])
+            const response = provider.getSigner();
+            setSigner(response);
         }else{
             <>Please Install MetaMask</>
         }
@@ -22,27 +33,20 @@ export default function Airdrop() {
     
 
     async function getAirdrop(){
-        connectWallet()
-        const signer = provider.getSigner()
+        //connectWallet()
+        //const signer = provider.getSigner()
         const STStoken = new ethers.Contract(Contractaddress,abi,signer)
         const receipt = await STStoken.airdrop(address)
         console.log(receipt)
     }
     async function lottery(){
-        connectWallet()
-        const signer = provider.getSigner();
         const STStoken = new ethers.Contract(Contractaddress,abi,signer)
         const receipt = await STStoken.lottery()
         console.log(receipt)
-
-
-
-        
-
-
-
     }
-
+    // async function getTokenPrice(amount){
+    //     const price = ; 
+    // }
     
     return (
         <>
@@ -52,7 +56,7 @@ export default function Airdrop() {
         ></input>
         <input type="submit" className="button" value="Airdrop" onClick={getAirdrop} /><br/>
        <br /> <input type="submit" className="button" value="Lottery" onClick={lottery} />
-
+       <br /> <input type="submit" className="button" value="connect" onClick={connectWallet} />
 
         </>
     )
