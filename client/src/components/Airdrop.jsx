@@ -20,20 +20,26 @@ export default function Airdrop() {
     const setValue = (setter) => (evt) => setter(evt.target.value);
     const[address, setAddress] = useState('')
     const[ signer, setSigner] = useState("")
+    const[ amount, setAmount] = useState("")
+    const[checker, setChecker] = useState(false)
+
 
     async function connectWallet(){
         if(window.ethereum){
             provider.send("eth_requestAccounts", [])
             const response = provider.getSigner();
             setSigner(response);
+            setChecker(true)
         }else{
             <>Please Install MetaMask</>
         }
     }
+    window.addEventListener('load', connectWallet) 
+
     
 
     async function getAirdrop(){
-        //connectWallet()
+        //await connectWallet()
         //const signer = provider.getSigner()
         const STStoken = new ethers.Contract(Contractaddress,abi,signer)
         const receipt = await STStoken.airdrop(address)
@@ -44,19 +50,30 @@ export default function Airdrop() {
         const receipt = await STStoken.lottery()
         console.log(receipt)
     }
-    // async function getTokenPrice(amount){
-    //     const price = ; 
-    // }
+     async function getTokenPrice(amount){
+        const STStoken = new ethers.Contract(Contractaddress,abi,signer)
+        const price = await STStoken.requestSTSforETH(amount)
+        console.log(price);
+        
+     }
     
     return (
         <>
-        <input placeholder="Type in your address"
+        <input type="submit" className="button" value="connect" onClick={()=>{connectWallet}} /><br />
+
+        <br /><input placeholder="Type in your address"
         value={address}
         onChange={setValue(setAddress)}
         ></input>
         <input type="submit" className="button" value="Airdrop" onClick={getAirdrop} /><br/>
-       <br /> <input type="submit" className="button" value="Lottery" onClick={lottery} />
-       <br /> <input type="submit" className="button" value="connect" onClick={connectWallet} />
+       
+        <br/> <input placeholder="Type in your amount to swap"
+        value={amount}
+        onChange={setValue(setAmount)}
+        ></input>
+        <input type="submit" className="button" value="Lottery" onClick={()=>{getTokenPrice(amount)}} />
+
+
 
         </>
     )
