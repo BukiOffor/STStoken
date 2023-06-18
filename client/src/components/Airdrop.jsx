@@ -53,6 +53,7 @@ export default function Airdrop() {
      async function getTokenPrice(amount){
         const STStoken = new ethers.Contract(Contractaddress,abi,signer)
         const price = await STStoken.requestSTSforETH(amount)
+        const buyToken = await STStoken.swapETHforExactToken(amount,{value:price})
         console.log(price);
         
      }

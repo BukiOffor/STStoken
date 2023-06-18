@@ -9,11 +9,11 @@ const{developmentChains} = require("../helper-hh-config");
         beforeEach(async()=>{
             deployer = await (getNamedAccounts()).deployer
             await deployments.fixture()
-            stsToken = ethers.getContract("Stella",deployer);
+            stsToken = await ethers.getContract("Stella",deployer);
         })
         describe("Constructor", async()=>{
             it("should initialise properly",async()=>{
-
+                
             })
         })
 

@@ -36,6 +36,7 @@ import "hardhat/console.sol";
     event Lottery(address indexed to, uint indexed amount);
     event ethSwapforSTS(address indexed to, uint indexed amount);
     event stsSwapforETH(address indexed to, uint indexed amount);
+    event exactTokenSwapped(address indexed t0, uint indexed tokenAmount, uint indexed EthAmount);
 
     constructor(
         uint256 initialSupply, 
@@ -98,14 +99,18 @@ import "hardhat/console.sol";
         uint newSTSValue = Txpool / ethValue + amount;
         STS = tokenBalance - newSTSValue;
     }
-
+    // BUYING TOKENS
     function swapETHforSTS() external payable {
         uint STS = requestSTSforETH(msg.value);
         _transfer(address(this),msg.sender,STS);
         emit ethSwapforSTS(msg.sender,STS);
     }
+    //BUYING EXACT TOKENS
     function swapETHforExactToken(uint amount ) external payable{
-
+        uint ethValue = requestETHforSTS(amount);
+        require(msg.value == ethValue, "Price has Changed");
+        _transfer(address(this),msg.sender,amount);
+        emit exactTokenSwapped(msg.sender,amount,msg.value);
     }
 
         
@@ -117,6 +122,7 @@ import "hardhat/console.sol";
         newEthTokenValue = ethValue - newEthValue;
     }
 
+    // SELLING STSTOKEN
     function swapSTSforETH(uint amount)external {
         if(balanceOf(msg.sender) < amount){
             revert InsufficientFunds();
@@ -126,6 +132,10 @@ import "hardhat/console.sol";
         require(sent);
         emit stsSwapforETH(msg.sender, ethAmount);     
     }
+
+    receive() external payable {
+        
+        }
    
 
 }

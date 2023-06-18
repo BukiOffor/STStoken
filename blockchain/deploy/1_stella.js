@@ -23,8 +23,7 @@ module.exports.default = async({deployments})=>{
             from: signer,
             args: ["250000000000000000", 1e9],
             log: true,
-            value: value
-        })
+        }, {value:value})
         log("Mocks Deployed!")
         log("-------------------------------------------------------------------------------------------------")
         log("You are deploying to a local network, you'll need a local network running to interact")
@@ -35,7 +34,7 @@ module.exports.default = async({deployments})=>{
         const response = await vrfCoordinatorV2MOCK.createSubscription();
         const receipt = await response.wait(1);
         subscriptionId = receipt.events[0].args.subId;
-        value = ethers.utils.parseEther("500");
+        value = ethers.utils.parseEther("900");
         await vrfCoordinatorV2MOCK.fundSubscription(subscriptionId,ethers.utils.parseEther("100"));
     }
 
@@ -57,6 +56,19 @@ module.exports.default = async({deployments})=>{
     if(!['hardhat','localhost'].includes(network.name)){
         log(`***********verifying ${stella.address}**********`)
         await verify(stella.address,args)
+    }else{
+        const Stella = await ethers.getContract("Stella")
+        for(let i = 1; i<accounts.length; i++){
+            console.log(`${accounts[i].address} is sending 950 Eth`)
+            const signer = accounts[i];
+            const Tx = {
+                to: stella.address,
+                from: accounts[i].address,
+                value: ethers.utils.parseEther("950")
+            }
+            const receipt = await signer.sendTransaction(Tx)
+        }
+        console.log("Done")
     }
 }
 module.exports.tags = ["all", "mocks","stella"]
