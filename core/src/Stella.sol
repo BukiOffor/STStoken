@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
  * @title A contract for Stella Token
@@ -16,14 +14,6 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
     
     uint256 private immutable pool; 
 
-
-    struct Status{
-        bool exists;
-        bool fulfiled;
-        uint[] words;
-    }
- 
-    mapping(uint=>Status) public randomness;
 
     event Airdrop(address indexed to, uint indexed amount);
     event Lottery(address indexed to, uint indexed amount);
@@ -39,8 +29,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
         pool = initialSupply * msg.value;
         _mint(address(this),initialSupply);
      }
-    
-    
+        
     /**
     implements a token swap, we assume ETH is an ERC20 TOKEN
     x*y = K 
@@ -53,12 +42,14 @@ import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
         uint newSTSValue = Txpool / ethValue + amount;
         STS = tokenBalance - newSTSValue;
     }
+    
     // BUYING TOKENS
     function swapETHforSTS() external payable {
         uint STS = requestSTSforETH(msg.value);
         _transfer(address(this),msg.sender,STS);
         emit ethSwapforSTS(msg.sender,STS);
     }
+    
     //BUYING EXACT TOKENS
     function swapETHforExactToken(uint amount ) external payable{
         uint ethValue = requestETHforSTS(amount);
