@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title A contract for Stella Token
@@ -8,7 +9,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @notice The token is not live
  * @dev This contract implements chailink vrf
  */
- contract Stella is ERC20{
+ contract Stella is ERC20, ReentrancyGuard {
 
     error InsufficientFunds();
     
@@ -26,7 +27,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
         ) 
     ERC20("STELLA","STS")
      payable {
-        pool = initialSupply * msg.value;
+        pool = (initialSupply * msg.value) * 1e18;
         _mint(address(this),initialSupply);
      }
         
@@ -35,17 +36,17 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
     x*y = K 
     */
    
-    function requestSTSforETH(uint amount) public view returns(uint STS){
+    function _requestSTSforETH(uint amount) internal view returns(uint STS){
         uint Txpool = pool;
         uint ethValue = address(this).balance;
         uint tokenBalance = balanceOf(address(this));
-        uint newSTSValue = Txpool / ethValue + amount;
+        uint newSTSValue = Txpool / ((ethValue + amount)* 1e18);
         STS = tokenBalance - newSTSValue;
     }
     
     // BUYING TOKENS
     function swapETHforSTS() external payable {
-        uint STS = requestSTSforETH(msg.value);
+        uint STS = _requestSTSforETH(msg.value);
         _transfer(address(this),msg.sender,STS);
         emit ethSwapforSTS(msg.sender,STS);
     }
@@ -63,11 +64,11 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
         uint Txpool = pool;
         uint ethValue = address(this).balance;
         uint tokenBalance = balanceOf(address(this));
-        uint newEthValue = Txpool / tokenBalance+amount;
+        uint newEthValue = Txpool / ((tokenBalance+amount)* 1e18);
         newEthTokenValue = ethValue - newEthValue;
     }
 
-    // SELLING STSTOKEN
+    // SELLING STSTOKEN for Ethereum
     function swapSTSforETH(uint amount)external {
         if(balanceOf(msg.sender) < amount){
             revert InsufficientFunds();
@@ -78,8 +79,16 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
         emit stsSwapforETH(msg.sender, ethAmount);     
     }
 
-    receive() external payable {
-        
+
+/**
+    we are sending burning any tokens thats mistakenly eneters the contract
+    we can easily send the tokens back to the sender, but we will assume the sender is an attack
+ */
+    receive() external payable nonReentrant {
+        uint amount = msg.value;
+        address _msgSender = address(0);
+        (bool sent,) = _msgSender.call{value:amount}("");
+        require(sent);
         }
    
 
