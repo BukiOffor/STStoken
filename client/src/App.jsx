@@ -4,7 +4,7 @@ function App() {
 
   return (
     <>
-      <Nav/>
+      <Nav />
       <Jumbo/>
     </>
   )
