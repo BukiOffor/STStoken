@@ -11,4 +11,8 @@ gas_reporter.txt
 cache
 artifacts
 lib
+.github
+cache
+broadcast
+out
 
