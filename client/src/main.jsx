@@ -2,9 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import dotenv from 'dotenv';
-dotenv.config();
-import process from 'process';
 
 import { EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/react'
@@ -12,7 +9,7 @@ import { configureChains, createConfig, WagmiConfig } from 'wagmi'
 import { arbitrum, mainnet, polygon } from 'wagmi/chains'
 
 
-const walletKey = process.env.walletConnectKey;
+const walletKey = "34043931dedf67433e6f95bfa3205586"
 const chains = [arbitrum, mainnet, polygon]
 const projectId = walletKey
 

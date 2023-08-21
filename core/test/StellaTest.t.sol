@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Stella} from "../src/Stella.sol";
-import {Test} from "forge-std/Test.sol";
+import { Stella} from "../src/Stella.sol";
+import { Test } from "forge-std/Test.sol";
 import { console } from "forge-std/console.sol";
-import {DeployStella} from "../script/DeployStella.s.sol";
+import { DeployStella } from "../script/DeployStella.s.sol";
 
 contract StellaTest is Test{
     constructor() {}
