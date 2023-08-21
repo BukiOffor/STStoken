@@ -19,5 +19,6 @@ contract StellaTest is Test{
         uint balance = address(stella).balance;
         assertEq(balance,7000 ether);
     }
+    
 
 }
