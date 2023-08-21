@@ -13,10 +13,8 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 contract Stella is ERC20, ReentrancyGuard {
     error InsufficientFunds();
 
-    uint256 private immutable _pool;
+    uint256 public immutable _pool;
 
-    event Airdrop(address indexed to, uint256 indexed amount);
-    event Lottery(address indexed to, uint256 indexed amount);
     event EthSwapforSTS(address indexed to, uint256 indexed amount);
     event EtsSwapforETH(address indexed to, uint256 indexed amount);
     event ExactTokenSwapped(address indexed t0, uint256 indexed tokenAmount, uint256 indexed ethAmount);
@@ -83,5 +81,8 @@ contract Stella is ERC20, ReentrancyGuard {
         address _msgSender = address(0);
         (bool sent,) = _msgSender.call{value: amount}("");
         require(sent);
+    }
+    function getPool()external view returns(uint) {
+        return (_pool/1e18);
     }
 }
