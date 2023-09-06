@@ -26,5 +26,4 @@ contract StellaTest is Test{
     }
 
 
-
 }

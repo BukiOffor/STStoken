@@ -12,6 +12,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
  */
 contract Stella is ERC20, ReentrancyGuard {
     error InsufficientFunds();
+    error TokenSupplyFinished();
 
     uint256 public immutable _pool;
 
@@ -20,7 +21,7 @@ contract Stella is ERC20, ReentrancyGuard {
     event ExactTokenSwapped(address indexed t0, uint256 indexed tokenAmount, uint256 indexed ethAmount);
 
     constructor(uint256 initialSupply) payable ERC20("STELLA", "STS") {
-        _pool = (initialSupply * msg.value) * 1e18;
+        _pool = (initialSupply * msg.value);
         _mint(address(this), initialSupply);
     }
 
@@ -29,17 +30,26 @@ contract Stella is ERC20, ReentrancyGuard {
      * x*y = K
      */
 
-    function requestSTSforETH(uint256 amount) public view returns (uint256 sts) {
+    function _requestSTSforETH(uint256 amount) internal view returns (uint256 sts) {
         uint256 txpool = _pool;
         uint256 ethValue = address(this).balance;
         uint256 tokenBalance = balanceOf(address(this));
-        uint256 newSTSValue = txpool / ((ethValue + amount) * 1e18);
+        uint256 newSTSValue = txpool / ((ethValue + amount));
+        sts = tokenBalance - newSTSValue;
+    }
+    function requestSTSforETH(uint256 amount) public view returns (uint256 sts) {
+        uint256 txpool = _pool;
+        uint256 ethValue = address(this).balance + amount;
+        uint256 tokenBalance = balanceOf(address(this));
+        uint256 newSTSValue = txpool / ((ethValue + amount) );
         sts = tokenBalance - newSTSValue;
     }
 
     // BUYING TOKENS
     function swapETHforSTS() external payable {
-        uint256 sts = requestSTSforETH(msg.value);
+        if(msg.value < 1){revert InsufficientFunds();}
+        if(balanceOf(address(this)) < 1){revert TokenSupplyFinished();}
+        uint256 sts = _requestSTSforETH(msg.value);
         _transfer(address(this), msg.sender, sts);
         emit EthSwapforSTS(msg.sender, sts);
     }
@@ -83,6 +93,6 @@ contract Stella is ERC20, ReentrancyGuard {
         require(sent);
     }
     function getPool()external view returns(uint) {
-        return (_pool/1e18);
+        return (_pool);
     }
 }
